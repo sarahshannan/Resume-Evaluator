@@ -224,15 +224,15 @@ def evaluate():
         final_prompt = FEW_SHOT_EXAMPLES + "\nResume:\n" + resume_text + "\n\nFeedback:"
         feedback = chat_with_gpt(final_prompt)
 
-        # Tag splitter
         tagged = {}
         current_section = "General"
         tagged[current_section] = ""
 
         for line in feedback.splitlines():
-            if line.strip().startswith(("✅", "❌", "⚠️")):
+            if line.strip().startswith("✅") or line.strip().startswith(
+                    "❌") or line.strip().startswith("⚠️"):
                 tagged[current_section] += line + "\n"
-            elif line.strip().lower().startswith("overall rating"):
+            elif line.strip().lower().startswith("overall rating:"):
                 tagged["Overall"] = line
             elif line.strip().endswith(":"):
                 current_section = line.strip().replace(":", "")
@@ -242,8 +242,10 @@ def evaluate():
 
         return jsonify(tagged)
     except Exception as e:
-        print("❌ ERROR in resume evaluation:", e)
-        return jsonify({"error": "Server error occurred"}), 500
+        import traceback
+        print("❌ ERROR in /evaluate:", e)
+        traceback.print_exc()
+        return jsonify({"error": "Server error occurred: " + str(e)}), 500
 
 
 @app.route('/')
