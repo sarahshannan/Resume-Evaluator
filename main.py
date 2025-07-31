@@ -242,8 +242,8 @@ def evaluate():
 
         return jsonify(tagged)
     except Exception as e:
-        print(f"❌ Error processing resume: {e}")
-        return jsonify({"error": str(e)}), 500
+        print("❌ ERROR in resume evaluation:", e)
+        return jsonify({"error": "Server error occurred"}), 500
 
 
 @app.route('/')
