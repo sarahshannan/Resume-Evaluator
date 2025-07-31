@@ -166,7 +166,10 @@ def extract_text_from_file(file):
     if ext == ".txt":
         return file.read().decode("utf-8")
     elif ext == ".docx":
-        doc = Document(file)
+        temp_path = os.path.join("/tmp", filename)
+        file.save(temp_path)
+        doc = Document(temp_path)
+        os.remove(temp_path)
         return "\n".join([p.text for p in doc.paragraphs])
     elif ext == ".pdf":
         reader = PyPDF2.PdfReader(file)
@@ -221,16 +224,15 @@ def evaluate():
         final_prompt = FEW_SHOT_EXAMPLES + "\nResume:\n" + resume_text + "\n\nFeedback:"
         feedback = chat_with_gpt(final_prompt)
 
-        # Optional: Basic tag splitter
+        # Tag splitter
         tagged = {}
         current_section = "General"
         tagged[current_section] = ""
 
         for line in feedback.splitlines():
-            if line.strip().startswith("✅") or line.strip().startswith(
-                    "❌") or line.strip().startswith("⚠️"):
+            if line.strip().startswith(("✅", "❌", "⚠️")):
                 tagged[current_section] += line + "\n"
-            elif line.strip().lower().startswith("overall rating:"):
+            elif line.strip().lower().startswith("overall rating"):
                 tagged["Overall"] = line
             elif line.strip().endswith(":"):
                 current_section = line.strip().replace(":", "")
@@ -240,16 +242,15 @@ def evaluate():
 
         return jsonify(tagged)
     except Exception as e:
+        print(f"❌ Error processing resume: {e}")
         return jsonify({"error": str(e)}), 500
 
 
-# Serve the HTML file
 @app.route('/')
 def index():
     return send_from_directory('.', 'test2.html')
 
 
-# Run the app
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=3000)
 
