@@ -1,0 +1,6 @@
+flask
+openai
+docx
+python-dotenv
+werkzeug
+flask-cors
